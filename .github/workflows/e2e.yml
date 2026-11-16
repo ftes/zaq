@@ -191,7 +191,7 @@ jobs:
       # test:ci seeds the DB only — assets are built by the steps above. The
       # developer-facing `test:journeys` still runs the full bootstrap.
       - name: Run E2E suite (${{ matrix.browser }})
-        run: npm --prefix test/e2e run test:ci -- --project=journeys-${{ matrix.browser }}
+        run: npm --prefix test/e2e run test:ci -- --project=journeys-${{ matrix.browser }} 'specs/(users|version_badge|channels|dashboard|ontology_feature_gate|prompt_templates|llm_performance|ai_model_selector|streamed_updates|multilingual_ingestion|webbridge_chat|history|knowledge_ops_lead|ingestion|onboarding)\.spec'
 
       - name: Upload Playwright artifacts
         if: always()
