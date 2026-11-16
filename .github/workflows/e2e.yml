@@ -108,13 +108,6 @@ jobs:
           otp-version: "28.1"
           elixir-version: "1.20.4"
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: "npm"
-          cache-dependency-path: test/e2e/package-lock.json
-
       - name: Restore Mix cache
         id: mix-cache
         uses: actions/cache@v4
@@ -169,29 +162,35 @@ jobs:
         if: steps.assets-cache.outputs.cache-hit != 'true'
         run: mix assets.build
 
-      - name: Install E2E dependencies
-        run: npm ci --prefix test/e2e
-
-      - name: Cache Playwright browsers
+      - name: Cache Playwright (driver and browsers)
         id: pw-cache
         uses: actions/cache@v4
         with:
-          path: ${{ runner.os == 'macOS' && '~/Library/Caches/ms-playwright' || '~/.cache/ms-playwright' }}
-          key: ${{ runner.os }}-${{ runner.arch }}-playwright-${{ matrix.browser }}-${{ hashFiles('test/e2e/package-lock.json') }}
+          path: |
+            ${{ runner.os == 'macOS' && '~/Library/Caches/ms-playwright' || '~/.cache/ms-playwright' }}
+            ${{ runner.os == 'macOS' && '~/Library/Caches/playwright' || '~/.cache/playwright' }}
+          key: ${{ runner.os }}-${{ runner.arch }}-playwright-ex-1.65.0-rc.1-${{ matrix.browser }}
 
       - name: Install Playwright browser
-        run: npx --prefix test/e2e playwright install --with-deps ${{ matrix.browser }}
-
-      - name: Verify browser navigation lifecycle
-        run: node --test --test-name-pattern='^${{ matrix.browser }}:' test/e2e/support/bo-navigation.test.cjs
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            mix do compile + playwright.install -- ${{ matrix.browser }} --with-deps
+          else
+            mix do compile + playwright.install -- ${{ matrix.browser }}
+          fi
 
       - name: Provision E2E database extensions as DBA
         run: mix run --no-start .github/scripts/provision-test-database.exs postgres
 
-      # test:ci seeds the DB only — assets are built by the steps above. The
-      # developer-facing `test:journeys` still runs the full bootstrap.
+      - name: Bootstrap E2E database
+        run: |
+          mix ecto.create --quiet
+          mix db.extensions --quiet
+          mix ecto.migrate --quiet
+          mix run test/support/e2e/bootstrap.exs
+
       - name: Run E2E suite (${{ matrix.browser }})
-        run: npm --prefix test/e2e run test:ci -- --project=journeys-${{ matrix.browser }}
+        run: mix test --only e2e test/e2e_pw
 
       - name: Upload Playwright artifacts
         if: always()
@@ -199,8 +198,7 @@ jobs:
         with:
           name: playwright-artifacts-${{ matrix.browser }}
           path: |
-            test/e2e/playwright-report
-            test/e2e/test-results
+            test-results
           if-no-files-found: ignore
 
       - name: Stop native PostgreSQL
