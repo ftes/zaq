@@ -169,14 +169,14 @@ jobs:
           path: |
             ${{ runner.os == 'macOS' && '~/Library/Caches/ms-playwright' || '~/.cache/ms-playwright' }}
             ${{ runner.os == 'macOS' && '~/Library/Caches/playwright' || '~/.cache/playwright' }}
-          key: ${{ runner.os }}-${{ runner.arch }}-playwright-ex-1.65.0-rc.1-${{ matrix.browser }}
+          key: ${{ runner.os }}-${{ runner.arch }}-playwright-ex-main-0217c34-${{ matrix.browser }}
 
       - name: Install Playwright browser
         run: |
           if [ "$RUNNER_OS" = "Linux" ]; then
-            mix do compile + playwright.install -- ${{ matrix.browser }} --with-deps
+            mix do compile + playwright.install ${{ matrix.browser }} --with-deps
           else
-            mix do compile + playwright.install -- ${{ matrix.browser }}
+            mix do compile + playwright.install ${{ matrix.browser }}
           fi
 
       - name: Provision E2E database extensions as DBA
