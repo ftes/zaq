@@ -204,7 +204,7 @@ defmodule Zaq.MixProject do
       {:excoveralls, "~> 0.18.5", only: :test},
       {:mox, "~> 1.2", only: :test},
       {:playwright,
-       github: "ftes/playwright_ex", ref: "0217c3445a6845750cdd2a9ce0355588b0147356", only: :test}
+       github: "ftes/playwright_ex", ref: "5fe2de9880c7b7b7b53c947e4ed18ca21d3512cc", only: :test}
     ]
   end
 

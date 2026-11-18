@@ -12,19 +12,19 @@ defmodule Zaq.E2EPw.Auth do
   @password System.get_env("E2E_ADMIN_PASSWORD") || "StrongPass1!"
 
   @doc "The admin's storage state, logging in on first use (by whichever module gets here first)."
-  def storage_state(browser, device) do
+  def storage_state(browser) do
     case :persistent_term.get({__MODULE__, :state}, nil) do
-      nil -> :global.trans({__MODULE__, self()}, fn -> login(browser, device) end)
+      nil -> :global.trans({__MODULE__, self()}, fn -> login(browser) end)
       state -> state
     end
   end
 
-  defp login(browser, device) do
+  defp login(browser) do
     case :persistent_term.get({__MODULE__, :state}, nil) do
       nil ->
         verify_server!()
 
-        context = Browser.new_context!(browser, Map.put(device, :base_url, @base_url))
+        context = Browser.new_context!(browser, base_url: @base_url)
         page = BrowserContext.new_page!(context)
 
         try do

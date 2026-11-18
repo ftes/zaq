@@ -15,24 +15,23 @@ defmodule Zaq.E2EPw.Case do
 
   alias Playwright.{Browser, BrowserContext}
   alias Playwright.Test.BrowserPool
+  alias Zaq.E2EPw.Auth
 
   @devices %{
-    chromium: "Desktop Chrome",
-    firefox: "Desktop Firefox",
-    webkit: "Desktop Safari"
+    "chromium" => "Desktop Chrome",
+    "firefox" => "Desktop Firefox",
+    "webkit" => "Desktop Safari"
   }
 
-  def browser_name do
-    case System.get_env("E2E_AUTH_BROWSER", "chromium") do
-      "chromium" -> :chromium
-      "firefox" -> :firefox
-      "webkit" -> :webkit
-      other -> raise "Unsupported E2E_AUTH_BROWSER=#{other}"
-    end
+  @doc "The device of the `journeys-<browser>` project that `E2E_AUTH_BROWSER` names."
+  def device do
+    browser = System.get_env("E2E_AUTH_BROWSER", "chromium")
+    Map.get(@devices, browser) || raise "Unsupported E2E_AUTH_BROWSER=#{browser}"
   end
 
   using opts do
     quote do
+      use Playwright.Test, Playwright.device(unquote(__MODULE__).device())
       use Playwright.Test, unquote(opts)
 
       alias Playwright.{
@@ -54,21 +53,13 @@ defmodule Zaq.E2EPw.Case do
   end
 
   setup_all do
-    %{browser: BrowserPool.browser(browser_name: browser_name())}
+    %{browser: BrowserPool.browser()}
   end
 
   setup %{browser: browser} do
-    device =
-      browser
-      |> BrowserPool.playwright()
-      |> Playwright.devices()
-      |> Map.fetch!(Map.fetch!(@devices, browser_name()))
-
-    context_options =
-      Map.put(device, :storage_state, Zaq.E2EPw.Auth.storage_state(browser, device))
-
-    context = Browser.new_context!(browser, context_options)
+    storage_state = Auth.storage_state(browser)
+    context = Browser.new_context!(browser, storage_state: storage_state)
     page = BrowserContext.new_page!(context)
-    %{context: context, page: page, request: BrowserContext.request(context), device: device}
+    %{context: context, page: page, request: BrowserContext.request(context)}
   end
 end

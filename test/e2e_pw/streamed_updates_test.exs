@@ -10,7 +10,7 @@ defmodule Zaq.E2EPw.StreamedUpdatesTest do
     :ok
   end
 
-  defp suffix, do: "journeys-#{Zaq.E2EPw.Case.browser_name()}-#{System.system_time(:millisecond)}"
+  defp suffix, do: "journeys-#{Test.info().use.browser_name}-#{System.system_time(:millisecond)}"
 
   defp enable_label, do: "Enable streamed message updates"
 
