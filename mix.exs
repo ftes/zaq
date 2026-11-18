@@ -202,7 +202,8 @@ defmodule Zaq.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:doctor, "~> 0.22", only: [:dev], runtime: false},
       {:excoveralls, "~> 0.18.5", only: :test},
-      {:mox, "~> 1.2", only: :test}
+      {:mox, "~> 1.2", only: :test},
+      {:playwright, "~> 1.65.0-rc.2", hex: :playwright_ex, only: :test}
     ]
   end
 

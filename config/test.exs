@@ -155,4 +155,15 @@ if e2e? do
   config :zaq, e2e_routes: true
 end
 
+if e2e? do
+  # The Playwright browser suite (test/e2e_pw), the port of test/e2e/playwright.config.js.
+  config :playwright, :test,
+    context_options: [base_url: "http://localhost:4002"],
+    trace: :retain_on_failure,
+    screenshot: :only_on_failure,
+    video: :retain_on_failure
+
+  config :playwright, :expect, timeout: if(System.get_env("CI"), do: 20_000, else: 15_000)
+end
+
 if File.exists?("config/test.secret.exs"), do: import_config("test.secret.exs")
