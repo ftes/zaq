@@ -4,8 +4,9 @@ defmodule Zaq.E2EPw.Case do
   projects of `test/e2e/playwright.config.js`.
 
   Every test gets a context of the project's device that starts from the back-office admin's
-  storage state (global setup logs in once), a `page` and a `request`. The browser comes from
-  `E2E_AUTH_BROWSER` (chromium, firefox or webkit), as the CI matrix leg sets it.
+  storage state (global setup logs in once), a `page` and a `request`. The device, and so the
+  browser, comes from `E2E_AUTH_BROWSER` (chromium, firefox or webkit), as the CI matrix leg
+  sets it, in `config/runtime.exs`.
 
   The journeys share one server and database (`POST /e2e/reset`), so modules are not async.
   """
@@ -17,21 +18,8 @@ defmodule Zaq.E2EPw.Case do
   alias Playwright.Test.BrowserPool
   alias Zaq.E2EPw.Auth
 
-  @devices %{
-    "chromium" => "Desktop Chrome",
-    "firefox" => "Desktop Firefox",
-    "webkit" => "Desktop Safari"
-  }
-
-  @doc "The device of the `journeys-<browser>` project that `E2E_AUTH_BROWSER` names."
-  def device do
-    browser = System.get_env("E2E_AUTH_BROWSER", "chromium")
-    Map.get(@devices, browser) || raise "Unsupported E2E_AUTH_BROWSER=#{browser}"
-  end
-
   using opts do
     quote do
-      use Playwright.Test, Playwright.device(unquote(__MODULE__).device())
       use Playwright.Test, unquote(opts)
 
       alias Playwright.{

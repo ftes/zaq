@@ -45,6 +45,25 @@ config :req_llm,
     }
   ]
 
+# The browser suite (test/e2e_pw): the device of test/e2e/playwright.config.js's
+# `journeys-<browser>` project, under every module's options. Here, as Playwright.device/1 needs
+# the compiled dependency.
+if config_env() == :test and System.get_env("E2E") == "1" do
+  browser = System.get_env("E2E_AUTH_BROWSER", "chromium")
+
+  device =
+    Map.get(
+      %{
+        "chromium" => "Desktop Chrome",
+        "firefox" => "Desktop Firefox",
+        "webkit" => "Desktop Safari"
+      },
+      browser
+    ) || raise "Unsupported E2E_AUTH_BROWSER=#{browser}"
+
+  config :playwright, :test, Enum.to_list(Playwright.device(device))
+end
+
 if config_env() == :prod do
   config :zaq, ZaqWeb.Endpoint, http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
