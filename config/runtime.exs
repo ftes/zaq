@@ -61,7 +61,7 @@ if config_env() == :test and System.get_env("E2E") == "1" do
       browser
     ) || raise "Unsupported E2E_AUTH_BROWSER=#{browser}"
 
-  config :playwright, :test, Enum.to_list(Playwright.device(device))
+  config :playwright, :test, Playwright.device(device)
 end
 
 if config_env() == :prod do
